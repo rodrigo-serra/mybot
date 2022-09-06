@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<robot name="mybot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+        
+        <!-- Put here the robot description -->
+        <xacro:property name="PI" value="3.1415926535897931"/>
+
+        <xacro:property name="chassisHeight" value="0.1"/>
+        <xacro:property name="chassisLength" value="0.4"/>
+        <xacro:property name="chassisWidth" value="0.2"/>
+        <xacro:property name="chassisMass" value="50"/>
+
+        <xacro:property name="casterRadius" value="0.05"/>
+        <xacro:property name="casterMass" value="5"/>
+
+        <xacro:property name="wheelWidth" value="0.05"/>
+        <xacro:property name="wheelRadius" value="0.1"/>
+        <xacro:property name="wheelPos" value="0.2"/>
+        <xacro:property name="wheelMass" value="5"/>
+
+        <xacro:property name="cameraSize" value="0.05"/>
+        <xacro:property name="cameraMass" value="0.1"/>
+        
+        <!-- Definition of materials (mostly colours) -->
+        <xacro:include filename="$(find mybot_description)/urdf/materials.xacro"/>
+        <!-- Definitions of some macros for easier description of the robot -->
+        <xacro:include filename="$(find mybot_description)/urdf/macros.xacro" />
+        <!-- Gazebo-specific aspects of our robot -->
+        <xacro:include filename="$(find mybot_description)/urdf/mybot.gazebo" />
+
+        <!-- The physic engine does not accept a base_link with inertia. It is then useful to add a simple link without inertia and make a joint between it and the chassis -->
+        <link name="footprint_link" />
+
+        <joint name="base_joint" type="fixed">
+                <parent link="footprint_link"/>
+                <child link="chassis_link"/>
+                <!-- <origin xyz="-5 0 0" rpy="0 0 0"/> -->
+        </joint>
+
+        <link name='chassis_link'>
+                <collision> 
+                        <origin xyz="0 0 ${wheelRadius}" rpy="0 0 0"/> 
+                        <geometry> 
+                                <box size="${chassisLength} ${chassisWidth} ${chassisHeight}"/> 
+                        </geometry> 
+                </collision>
+                <visual> 
+                        <origin xyz="0 0 ${wheelRadius}" rpy="0 0 0"/> 
+                        <geometry> 
+                                <box size="${chassisLength} ${chassisWidth} ${chassisHeight}"/> 
+                        </geometry>
+                        <!-- Colour that comes from the materials.xacro  -->
+                        <material name="orange"/>
+                </visual>
+                <inertial> 
+                        <origin xyz="0 0 ${wheelRadius}" rpy="0 0 0"/> 
+                        <mass value="${chassisMass}"/> 
+                        <!-- Macro that comes from the materials.xacro -->
+                        <box_inertia m="${chassisMass}" x="${chassisLength}" y="${chassisWidth}" z="${chassisHeight}"/>
+                </inertial>
+        </link>
+
+        <joint name="fixed_joint" type="fixed">
+                <parent link="chassis_link"/>
+                <child link="caster_wheel_link"/>
+                <origin xyz="${casterRadius-chassisLength/2} 0 ${casterRadius-chassisHeight+wheelRadius}" rpy="0 0 0"/>
+        </joint>
+
+        <link name="caster_wheel_link">
+                <collision>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <sphere radius="${casterRadius}"/>
+                        </geometry>
+                </collision>
+                
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <sphere radius="${casterRadius}"/>
+                        </geometry>
+                        <material name="red"/>
+                </visual>
+
+                <inertial>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <mass value="${casterMass}"/>
+                        <sphere_inertia m="${casterMass}" r="${casterRadius}"/>
+                </inertial>
+        </link>
+
+        <wheel lr="left" tY="1"/>
+        <wheel lr="right" tY="-1"/>
+
+        <joint name="camera_joint" type="fixed">
+                <parent link="chassis_link"/>
+                <child link="camera_link"/>
+                <origin xyz="${chassisLength/2 - cameraSize/2} 0 ${chassisHeight + wheelRadius - chassisHeight/2 + cameraSize/2}" rpy="0 0 0"/>
+        </joint>
+
+        <link name="camera_link">
+                <collision>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+                        </geometry>
+                </collision>
+
+                <visual>
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <geometry>
+                                <box size="${cameraSize} ${cameraSize} ${cameraSize}"/>
+                        </geometry>
+                        <material name="blue"/>
+                </visual>
+
+                <inertial>
+                        <mass value="${cameraMass}" />
+                        <origin xyz="0 0 0" rpy="0 0 0"/>
+                        <box_inertia m="${cameraMass}" x="${cameraSize}" y="${cameraSize}" z="${cameraSize}" />
+                </inertial>
+        </link>
+
+
+</robot>
